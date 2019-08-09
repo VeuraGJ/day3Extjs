@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Tree2</title>
+	<link rel="stylesheet" type="text/css" href="../resources/css/ext-all.css" />
+ 	<!-- LIBS -->
+ 	<script type="text/javascript" src="../adapter/ext/ext-base.js"></script>
+ 	<!-- ENDLIBS -->
+    <script type="text/javascript" src="../ext-all.js"></script>
+	<script>
+		Ext.onReady(function() { 
+			var root = new Ext.tree.TreeNode({text:'ITA2019'});
+			var clas1 = new Ext.tree.TreeNode({text:'Suze',expandable:true});
+			var clas2 = new Ext.tree.TreeNode({text:'Panama',expandable:true});
+			var stu1 = new Ext.tree.TreeNode({text:'Wde',leaf:true});
+			var stu2 = new Ext.tree.TreeNode({text:'Sarah',leaf:true});
+			var classData = [[0, 'Suze'], [1, 'Panama']];
+			var store = new Ext.data.ArrayStore({
+			fields: ['id', 'className'],
+			data: classData
+			});
+			root.appendChild([clas1,clas2]);
+			clas1.appendChild([stu1,stu2]);
+			var form1 = new Ext.FormPanel({
+			 id:'form1',
+			 bodyStyle:'padding:5px',
+			 labelWidth:50,
+			 width:300,
+			 defaultType: 'textfield',
+			 items:[{
+				 id:'addClass',
+				 fieldLabel:'class'
+			 }],
+			 buttons:[{
+					text: 'submit',
+					listeners:{
+					'click': function(btn, e){
+						if(!Ext.getCmp('addClass').getValue().length){
+						Ext.Msg.alert("提示","班级不能为空！");
+						}
+						Ext.getCmp('manageTree').getRootNode().
+						appendChild(new Ext.tree.TreeNode({text:Ext.getCmp('addClass').getValue(),expanded:true,expandable:true}));
+						var length = store.data.length;
+						var orignData = classData;
+						orignData.push([length,Ext.getCmp('addClass').getValue()]);
+						store.loadData(orignData);
+					}}
+			 }]
+		 });
+		 var combox =new Ext.form.ComboBox({
+				id: 'clas',
+				fieldLabel: 'Class',
+				emptyText: '请选择',
+				mode: 'local',
+				triggerAction:'all',
+				store: store,
+				valueField: 'id',
+				displayField: 'className'
+            });
+		 var form2 = new Ext.FormPanel({
+			id:'form2',
+			 bodyStyle:'padding:5px',
+			 labelWidth:50,
+			 width:300,
+			 defaultType: 'textfield',
+			 items:[{
+				 id:'addStudent',
+				 fieldLabel:'student'
+			 },combox],
+			 buttons:[{
+					text: 'submit',
+					listeners:{
+					'click': function(btn, e){
+						if(!Ext.getCmp('addStudent').getValue().length||!Ext.getCmp('clas').getRawValue().length){
+						Ext.Msg.alert("提示","班级和姓名不能为空！");
+						}
+						var className = Ext.getCmp('clas').getRawValue();
+						Ext.getCmp('manageTree').getRootNode()
+						.findChild('text',className)
+						.appendChild(new Ext.tree.TreeNode({text:Ext.getCmp('addStudent').getValue()}))
+					}}
+			 }]
+		 });
+		 var tabPanel = new Ext.TabPanel({
+			    id:'addTab',
+                items:[
+                    {
+                    title: '添加班级',
+				    items:form1
+                },{
+                    title: '添加学生',
+				    items:form2
+                }],
+                activeTab:0,
+			});
+			var w = new Ext.Window({
+				title:'添加',
+				width:400,
+				autoHeight:true,
+				closeAction:'hide',
+				items:[tabPanel],
+				listeners:{
+					'beforehide':function(){
+						Ext.getCmp('addTab').setActiveTab(0);
+						Ext.getCmp('clas').clearValue();
+						Ext.getCmp('form1').getForm().reset();
+						Ext.getCmp('form2').getForm().reset()
+					}
+				}
+			});
+			var menu = new Ext.menu.Menu({
+				items: [{  
+					id: 'addStu',
+					text: 'add Student'
+				},{
+					id: 'addCls',
+					text: 'Add Class'
+				}],
+				listeners: {
+					itemclick: function(item) {
+						switch (item.id) {
+							case 'addStu':
+								var currentNode = item.parentMenu.contextNode;
+								if(!currentNode.isLeaf()&&currentNode.parentNode){
+									Ext.getCmp('addTab').setActiveTab(1);
+									Ext.getCmp('clas').setValue(currentNode.text);
+									w.show();
+								}else{
+									Ext.Msg.alert('提示信息','学生下面不能添加学生');
+								}
+								break;
+						case 'addCls':
+								var currentNode = item.parentMenu.contextNode;
+								if (!currentNode.parentNode) {
+									w.show();
+								}else{
+									Ext.Msg.alert('提示信息','班级或学生下面不能添加班级');
+								}
+								break;
+						}
+					}
+				}
+			});
+			var tree = new Ext.tree.TreePanel({
+				width: 600,
+				autoHeight:true,
+				root: root,
+				id:'manageTree',
+				contextMenu:menu,
+				listeners: {
+					contextmenu: function(node, e) {
+						node.select();
+						var treeContextMenu = node.getOwnerTree().contextMenu;
+						treeContextMenu.contextNode = node;
+						treeContextMenu.showAt(e.getXY());
+					}
+				}
+			});
+			var treeEditor = new Ext.tree.TreeEditor(tree, {allowBlank: false}, {
+				listeners: {
+					complete: function(editor, currVal, origVal) {
+						Ext.Msg.alert('Tree Editor', '修改' + origVal + ' 为 ' + currVal);
+						
+					}
+				}
+			});
+			var panel = new Ext.Panel({
+				title:'学生管理系统',
+				style:'position:relative',
+				x:200,
+				y:200,
+				renderTo:'test',
+				items:[tree],
+				width:600,
+				bbar:new Ext.Toolbar({
+					items:[{
+						xtype:'button',
+						text:'Add',
+						listeners:{
+							click:function(btn,e){
+								console.log(Ext.getCmp('manageTree'))
+								w.show();
+							}
+						}
+					}]
+				}),
+				autoHeight:true,
+				
+			});
+			tree.expandAll();
+		});
+	</script>
+</head>
+<body>
+<div id="test"></div>
+</body>
+</html>
