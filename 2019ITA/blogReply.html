@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>toolbar</title>
+	<link rel="stylesheet" type="text/css" href="../resources/css/ext-all.css" />
+ 	<!-- LIBS -->
+ 	<script type="text/javascript" src="../adapter/ext/ext-base.js"></script>
+ 	<!-- ENDLIBS -->
+    <script type="text/javascript" src="../ext-all.js"></script>
+	<script>
+		Ext.onReady(function() { 
+            var data = []
+            var tpl = new Ext.XTemplate(
+              '<tpl for="values">',
+              '<tr>',
+              '<tpl for="values">',
+              '<td>{.}</td>',
+              '</tpl> ' ,
+              '</tr>',
+              '</tpl>',
+              );
+            
+            var form = new Ext.FormPanel({
+			id:'form1',
+			 bodyStyle:'padding:5px',
+			 labelWidth:50,
+			 width:300,
+			 defaultType: 'textfield',
+			 items:[{
+				 id:'rowNum',
+				 fieldLabel:'行数'
+			 },{
+				 id:'columnNum',
+				 fieldLabel:'列数'
+			 }],
+			 buttons:[{
+					text: 'submit',
+					listeners:{
+					'click': function(btn, e){
+                        var row = Ext.getCmp('rowNum').getValue();
+                        var column = Ext.getCmp('columnNum').getValue();
+                        var result = [];
+                        var count =1;
+                        for(let i =0;i<row;i++){
+                            result[i] = [];
+                            for(let j=0;j<column;j++){
+                                result[i][j] = count;
+                                count ++;
+                            }
+                        }
+                        data = result;
+                        tpl.append(Ext.getDom('templateTable'),data);
+                        // tpl.overwrite(panelTable.body,data);
+                        Ext.getCmp('rowNum').setValue();
+                        Ext.getCmp('columnNum').setValue();
+                        w.hide();
+					}}
+			 }]
+         });
+         var w = new Ext.Window({
+				title:'添加',
+				width:400,
+				autoHeight:true,
+				closeAction:'hide',
+				items:[form],
+			});
+            var editMenu = new Ext.menu.Menu({
+                items:[{text:'reset'}],
+                listeners:{
+                    'itemclick':function(bI,e){
+                        console.log(bI);
+                        Ext.getCmp('replyForm').getForm().reset();
+                    }
+                }
+            });
+            var insertItem = new Ext.menu.Menu({
+                items:[{text:'table'}],
+                listeners:{
+                    'itemclick':function(bI,e){
+                        w.show();
+                    }
+                }
+            });
+            var contextMenu = new Ext.menu.Menu({
+				items: [{  
+                    text: 'edit',
+                    menu:editMenu,
+				},{
+                    text: 'insert',
+                    menu:insertItem
+                }]
+            });
+            Ext.getDoc().on('contextmenu', function(e){
+                    e.preventDefault();
+                    contextMenu.showAt(e.getXY());
+                });
+            var panelTable = new Ext.Panel({
+                id:'table',
+                title:'table',
+                html:'<table id ="templateTable"></table>',
+                x:200,
+                width:600,
+                height:200,
+                renderTo:'tableshow',
+                autoScroll:true,
+            });
+            var panel = new Ext.form.FormPanel({
+                id:'replyForm',
+                style:'position:relative',
+                x:200,
+                y:200,
+                width:600,
+                autoHeight:true,
+                renderTo:'test',
+                bodyStyle:'padding:5',
+                tbar: new Ext.Toolbar({
+                    width: 600,
+                    items: [  
+                    {
+                        xtype: 'splitbutton',
+                        text: 'edit',
+                        menu:editMenu
+                    },
+                    '-',
+                    {
+                        xtype: 'splitbutton',
+                        text: 'insert',
+                        menu:insertItem
+                    }]
+                }),
+                items:[{
+                    id:'replyContent',
+                    xtype:'textarea',
+                    enableKeyEvents:true,
+                    anchor:'80%',
+                    listeners:{
+                        'keyup':function(tf,e){
+                            Ext.getCmp('replyButton').setDisabled(Ext.isEmpty(tf.getValue()));
+                        }
+                    }
+                }],
+                buttons:[{
+                    id:'replyButton',
+                    text:'reply',
+                    disabled:true,
+                    listeners:{
+                        'click':function(b,e){
+                            var task = new Ext.util.DelayedTask(function(){
+                                Ext.getBody().unmask();
+                                Ext.getCmp('replyForm').getForm().reset();
+                                Ext.getCmp('replyButton').setDisabled(Ext.isEmpty(Ext.getCmp('replyContent').getValue()));
+                                Ext.Msg.alert("提示","success");
+                            })
+                            task.delay(3000);
+                            Ext.getBody().mask("提交中...");
+                        }
+                    }
+                }]
+            });
+		});
+	</script>
+</head>
+<body>
+<div id="tableshow"></div>
+<div id="test"></div>
+</body>
+</html>
