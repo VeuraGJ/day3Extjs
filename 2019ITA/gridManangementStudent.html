@@ -173,7 +173,8 @@ Ext.onReady(function(){
                             if(rowIndex > 0){
                                 var rowData = store.getAt(rowIndex);
                                 store.removeAt(rowIndex);
-                                store.insert(rowIndex-1,rowData)
+                                store.insert(rowIndex-1,rowData);
+                                grid.getView().refresh();
                             }
 								break;
 						case 'down':
@@ -183,7 +184,8 @@ Ext.onReady(function(){
                             if(rowIndex < rowNum-1){
                                 var rowData = store.getAt(rowIndex);
                                 store.removeAt(rowIndex);
-                                store.insert(rowIndex+1,rowData)
+                                store.insert(rowIndex+1,rowData);
+                                grid.getView().refresh();
                             }
                             break;
                           case 'first':
@@ -192,7 +194,8 @@ Ext.onReady(function(){
                             if(rowIndex > 0){
                                 var rowData = store.getAt(rowIndex);
                                 store.removeAt(rowIndex);
-                                store.insert(0,rowData)
+                                store.insert(0,rowData);
+                                grid.getView().refresh();
                             }
 								break;
 						case 'last':
@@ -202,7 +205,8 @@ Ext.onReady(function(){
                             if(rowIndex < rowNum-1){
                                 var rowData = store.getAt(rowIndex);
                                 store.removeAt(rowIndex);
-                                store.insert(rowNum-1,rowData)
+                                store.insert(rowNum-1,rowData);
+                                grid.getView().refresh();
                             }
 							break;
 						}
